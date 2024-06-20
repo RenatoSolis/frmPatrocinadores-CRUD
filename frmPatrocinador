@@ -1,0 +1,65 @@
+
+Public Class frmPatrocinador
+    ' Instancia de Patrocinadores pasada desde frmPatrocinadores
+    Private patrocinadores As Patrocinadores
+
+    ' Indica si el formulario es para modificar un registro existente
+    Private isEditMode As Boolean
+    '--------------------------------------------------------------------
+    '03/06/2024-Renato Solis
+    'Creación de formulario para el crud de patrocinadores 
+    '--------------------------------------------------------------------
+    Public Sub New(ByVal patrocinador As Patrocinadores, Optional ByVal editMode As Boolean = False)
+        InitializeComponent()
+        Me.patrocinadores = patrocinador
+        Me.isEditMode = editMode
+
+        ' Verifica si el usuario tiene el permiso especial(Procedimiento,Funcion)
+        Dim editable As Boolean = TieneAccesoPermisoEspecial("ID_Patrocinadores", "Modificar marca descuento en caja p/Patrocinadores")
+
+        'editable = True
+        ' Hacer que el CheckBox sea solo de lectura o editable basado en el permiso
+        chkDescuentoEnCaja.Enabled = editable
+
+        If isEditMode Then
+            txtNombre.Text = patrocinador.pNombre
+            txtDenominacion.Text = patrocinador.pDenominacion
+            chkDescuentoEnCaja.Checked = (patrocinador.pDescuentoEnCaja = "S")
+            Me.Text = "Modificando Patrocinador..."
+        Else
+            ' Establecer valor predeterminado del CheckBox como "N" cuando esté deseleccionado
+            chkDescuentoEnCaja.Checked = False
+            Me.Text = "Agregando Patrocinador..."
+        End If
+    End Sub
+
+    Private Sub btnAceptar_Click(sender As Object, e As EventArgs) Handles btnAceptar.Click
+        If String.IsNullOrEmpty(txtNombre.Text) Then
+            MessageBox.Show("Por favor, ingrese valores válidos para el Nombre")
+            Return
+        End If
+
+        patrocinadores.pNombre = txtNombre.Text
+        patrocinadores.pDenominacion = txtDenominacion.Text
+        patrocinadores.pDescuentoEnCaja = If(chkDescuentoEnCaja.Checked, "S", "N")
+
+        Try
+            If isEditMode Then
+                patrocinadores.Actualizar()
+            Else
+                patrocinadores.Insertar()
+            End If
+            MessageBox.Show("Registro guardado con éxito")
+            Me.DialogResult = DialogResult.OK
+            Me.Close()
+        Catch ex As Exception
+            MessageBox.Show("Error al guardar el registro: " & ex.Message)
+        End Try
+    End Sub
+
+    Private Sub btnCancelar_Click(sender As Object, e As EventArgs) Handles btnCancelar.Click
+        ' Cerrar el formulario con resultado Cancel
+        Me.DialogResult = DialogResult.Cancel
+        Me.Close()
+    End Sub
+End Class
